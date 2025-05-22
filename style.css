@@ -987,11 +987,19 @@ header.scrolled {
 }
 
 /* 타이핑 효과 */
-.typing::after {
-    content: "|";
-    animation: blink 1.2s step-end infinite;
-}
 @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
+
+/* 커서 타이핑 효과 (with-cursor 클래스 사용) */
+.typing.with-cursor::after {
+    content: '|';
+    display: inline-block;
+    animation: cursor-blink 0.7s infinite;
+}
+
+@keyframes cursor-blink {
     0%, 100% { opacity: 1; }
     50% { opacity: 0; }
 }
