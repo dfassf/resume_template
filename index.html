@@ -23,13 +23,13 @@
                     <div class="logo" style="pointer-events: none;">{{ personalInfo.name }}</div>
                     <nav class="header-nav">
                         <ul>
-                            <li><a href="#" @click.prevent="scrollToTop" :class="{ 'active': activeSection === 'home' }">프로필</a></li>
-                            <li><a href="#about" @click.prevent="scrollToSection('about')" :class="{ 'active': activeSection === 'about' }">소개</a></li>
-                            <li><a href="#experience" @click.prevent="scrollToSection('experience')" :class="{ 'active': activeSection === 'experience' }">경력</a></li>
-                            <li><a href="#portfolio" @click.prevent="scrollToSection('portfolio')" :class="{ 'active': activeSection === 'portfolio' }">포트폴리오</a></li>
-                            <li><a href="#skills" @click.prevent="scrollToSection('skills')" :class="{ 'active': activeSection === 'skills' }">기술 스택</a></li>
-                            <li><a href="#education" @click.prevent="scrollToSection('education')" :class="{ 'active': activeSection === 'education' }">학력</a></li>
-                            <li><a href="#contact" @click.prevent="scrollToSection('contact')" :class="{ 'active': activeSection === 'contact' }">연락처</a></li>
+                            <li v-for="(item, index) in menuItems" :key="index" v-if="shouldShowMenuItem(item.id)">
+                                <a :href="item.href" 
+                                   @click.prevent="item.id === 'home' ? scrollToTop() : scrollToSection(item.id)" 
+                                   :class="{ 'active': activeSection === item.id }">
+                                    {{ item.text }}
+                                </a>
+                            </li>
                         </ul>
                     </nav>
                 </div>
@@ -43,7 +43,7 @@
             <div class="container">
                 <div class="hero-content">
                     <div class="hero-tag">{{ heroSection.tag }}</div>
-                    <h1>{{ heroSection.title }} <br><span class="typing" ref="typing">{{ typingText }}</span></h1>
+                    <h1>{{ heroSection.title }} <br><span class="typing" ref="typing" :class="{ 'with-cursor': typingOptions.showCursor }">{{ typingOptions.enableTyping ? '' : typingText }}</span></h1>
                     <p class="hero-description">
                         <span v-for="(paragraph, index) in heroSection.description" :key="index">{{ paragraph }}</span>
                     </p>
@@ -60,7 +60,7 @@
         </section>
 
         <!-- 소개 섹션 -->
-        <section id="about">
+        <section id="about" v-if="aboutSection && aboutSection.visible !== false">
             <div class="container">
                 <h2 class="section-title">{{ aboutSection.title }}</h2>
                 <p class="section-subtitle">{{ aboutSection.subtitle }}</p>
@@ -72,7 +72,7 @@
         </section>
 
         <!-- 경력 섹션 -->
-        <section id="experience">
+        <section id="experience" v-if="experienceSection && experienceSection.visible !== false">
             <div class="container">
                 <h2 class="section-title">{{ experienceSection.title }}</h2>
                 <p class="section-subtitle">{{ experienceSection.subtitle }}</p>
@@ -118,7 +118,7 @@
         </section>
 
         <!-- 포트폴리오 섹션 -->
-        <section id="portfolio">
+        <section id="portfolio" v-if="portfolioSection && portfolioSection.visible !== false">
             <div class="container">
                 <h2 class="section-title">{{ portfolioSection.title }}</h2>
                 <p class="section-subtitle">{{ portfolioSection.subtitle }}</p>
@@ -176,7 +176,7 @@
         </section>
 
         <!-- 기술 스택 섹션 -->
-        <section id="skills">
+        <section id="skills" v-if="skillsSection && skillsSection.visible !== false">
             <div class="container">
                 <h2 class="section-title">{{ skillsSection.title }}</h2>
                 <p class="section-subtitle">{{ skillsSection.subtitle }}</p>
@@ -197,7 +197,7 @@
         </section>
 
         <!-- 학력 및 자격증 섹션 -->
-        <section id="education">
+        <section id="education" v-if="educationSection && educationSection.visible !== false">
             <div class="container">
                 <h2 class="section-title">{{ educationSection.title }}</h2>           
                 <div class="skill-grid">
@@ -221,7 +221,7 @@
         </section>
 
         <!-- 연락처 섹션 -->
-        <section id="contact">
+        <section id="contact" v-if="contactSection && contactSection.visible !== false">
             <div class="container">
                 <h2 class="section-title">{{ contactSection.title }}</h2>
                 <p class="section-subtitle">{{ contactSection.subtitle }}</p>
@@ -295,77 +295,101 @@
     </div>
 
     <script>
-        // Vue 인스턴스 생성
         const app = new Vue({
             el: '#app',
             data: {
-                isModalVisible: false,
-                modalImage: '',
-                scrolled: false,
-                headerScrolled: false,
-                typingText: 'N년차 개발자',
-                typingIndex: 0,
-                isTyping: false,
-                activeSection: 'home',
-                personalInfo: {
-                    name: '이름샘플',
-                    position: 'IT 전문가'
+                // === 시스템 설정 (직접 수정 불필요) ===
+                isModalVisible: false, // 이미지 모달 표시 여부
+                modalImage: '', // 모달에 표시될 이미지 경로
+                scrolled: false, // 스크롤 여부
+                headerScrolled: false, // 헤더 스크롤 여부
+                typingText: 'N년차 개발자', // 메인 화면에 타이핑되는 텍스트
+                typingIndex: 0, // 타이핑 효과 인덱스 (수정 불필요)
+                isTyping: false, // 타이핑 진행 여부 (수정 불필요)
+                activeSection: 'home', // 현재 활성화된 섹션 (수정 불필요)
+                
+                // === 효과 옵션 설정 ===
+                typingOptions: {
+                    showCursor: true, // true: 타이핑 커서 표시, false: 커서 숨김
+                    enableTyping: true // true: 타이핑 효과 활성화, false: 텍스트 바로 표시
                 },
+                // === 메뉴 항목 설정 ===
+                // 메뉴 항목 추가/제거 또는 텍스트 수정 가능
+                // 특정 메뉴를 숨기려면 해당 섹션의 visible을 false로 설정
+                menuItems: [
+                    { id: 'home', text: '프로필', href: '#' },
+                    { id: 'about', text: '소개', href: '#about' },
+                    { id: 'experience', text: '경력', href: '#experience' },
+                    { id: 'portfolio', text: '포트폴리오', href: '#portfolio' },
+                    { id: 'skills', text: '기술 스택', href: '#skills' },
+                    { id: 'education', text: '학력', href: '#education' },
+                    { id: 'contact', text: '연락처', href: '#contact' }
+                ],
+                // === 개인 정보 설정 ===
+                personalInfo: {
+                    name: '홍길동', // 이름
+                    position: 'IT 전문가' // 직위/직업
+                },
+                // === 메인 영역(Hero) 설정 ===
                 heroSection: {
-                    tag: '소프트웨어 엔지니어',
-                    title: '사용자 경험에 가치를 더하는',
-                    description: [
+                    visible: true, // true: 표시, false: 숨김
+                    tag: '소프트웨어 엔지니어', // 상단 태그 텍스트
+                    title: '사용자 경험에 가치를 더하는', // 메인 제목
+                    description: [ // 소개 문구 (배열로 여러 단락 설정 가능)
                         '소프트웨어 개발자로서 효율적인 코드 작성과 최적화된 사용자 경험 제공에 집중합니다.',
                         '대규모 트래픽 처리 및 안정적인 서비스 운영 경험이 있으며, 시스템 아키텍처 설계부터 배포까지 전체 개발 주기를 이해하고 있습니다.',
                         '다양한 팀과의 협업을 통해 복잡한 비즈니스 요구사항을 이해하고 기술적 솔루션을 제공하는 데 능숙합니다.',
                         '지속적인 학습과 최신 기술 트렌드 파악으로 혁신적인 제품 개발에 기여하고 있습니다.'
                     ],
-                    contactButtonText: '연락하기'
+                    contactButtonText: '연락하기' // 연락하기 버튼 텍스트
                 },
+                // === 소개 섹션 설정 ===
                 aboutSection: {
-                    title: '소개',
-                    subtitle: '저의 경력과 전문 분야를 소개합니다.',
-                    paragraphs: [
+                    visible: true, // true: 표시, false: 숨김
+                    title: '소개', // 섹션 제목
+                    subtitle: '저의 경력과 전문 분야를 소개합니다.', // 부제목
+                    paragraphs: [ // 소개 내용 (배열로 여러 단락 설정 가능)
                         '다양한 산업 분야의 소프트웨어 개발 경험을 보유한 IT 전문가입니다. 프론트엔드부터 백엔드, 클라우드 인프라에 이르기까지 종합적인 기술 스택을 활용합니다.',
                         '사용자 중심의 설계 철학을 바탕으로 직관적이고 효율적인 솔루션을 구현합니다. 코드 품질과 시스템 성능 최적화에 대한 깊은 이해를 갖추고 있습니다.',
                         '기술적 도전과제를 해결하고 팀 역량을 강화하는 데 기여해왔으며, 지속적인 개선과 혁신을 추구합니다.'
                     ]
                 },
                 experienceSection: {
-                    title: '경력',
-                    subtitle: '다양한 환경에서의 프로젝트 경험을 소개합니다.',
-                    companies: [
+                    visible: true, // true: 표시, false: 숨김
+                    title: '경력', // 섹션 제목
+                    subtitle: '다양한 환경에서의 프로젝트 경험을 소개합니다.', // 부제목
+                    companies: [ // 회사/경력 정보 (배열로 여러 회사 추가 가능)
                         {
-                            name: '테크 이노베이션',
-                            logoSrc: 'assets/company_logos/github.png',
-                            duration: '20XX.01 - 20XX.12 (2년)',
-                            position: '시니어 소프트웨어 엔지니어',
-                            description: '혁신적인 디지털 서비스 플랫폼을 개발하는 기업으로, 월간 활성 사용자 수십만 명을 보유한 서비스의 핵심 기능 개발 및 유지보수를 담당했습니다.',
-                            roles: [
+                            name: '테크 이노베이션', // 회사명
+                            logoSrc: 'assets/company_logos/github.png', // 회사 로고 경로
+                            duration: '20XX.01 - 20XX.12 (2년)', // 근무 기간
+                            position: '시니어 소프트웨어 엔지니어', // 직위
+                            description: '혁신적인 디지털 서비스 플랫폼을 개발하는 기업으로, 월간 활성 사용자 수십만 명을 보유한 서비스의 핵심 기능 개발 및 유지보수를 담당했습니다.', // 회사/업무 설명
+                            roles: [ // 역할 목록 (배열로 여러 항목 추가 가능)
                                 '핵심 비즈니스 로직 설계 및 구현',
                                 'RESTful API 개발 및 최적화',
                                 '마이크로서비스 아키텍처 설계 참여',
                                 '시스템 성능 모니터링 및 개선',
                                 '주니어 개발자 멘토링 및 코드 리뷰'
                             ],
-                            achievements: [
+                            achievements: [ // 성과 목록 (배열로 여러 항목 추가 가능)
                                 '서비스 응답 시간 40% 개선으로 사용자 경험 향상',
                                 '자동화 테스트 도입으로 배포 안정성 향상 및 버그 발생률 60% 감소',
                                 '코드 리팩토링을 통한 유지보수성 향상 및 개발 속도 30% 증가',
                                 '신규 기능 출시로 사용자 참여도 25% 증가',
                                 '클라우드 인프라 최적화로 운영 비용 20% 절감'
                             ],
-                            keyExperiences: [
+                            keyExperiences: [ // 주요 경험 (배열로 여러 항목 추가 가능)
                                 {
-                                    title: '고성능 검색 시스템 구현',
-                                    details: [
+                                    title: '고성능 검색 시스템 구현', // 주요 경험 제목
+                                    details: [ // 세부 내용
                                         '대용량 데이터 처리를 위한 검색 엔진 도입 및 커스터마이징',
                                         '복잡한 필터링 및 정렬 기능 구현으로 사용자 경험 개선',
                                         '캐싱 전략 도입으로 검색 속도 5배 향상'
                                     ]
                                 },
                                 {
-                                    title: '결제 시스템 고도화',
+                                    title: '결제 시스템 고도화', // 또 다른 주요 경험
                                     details: [
                                         '다양한 결제 수단 통합 및 안정적인 결제 프로세스 구현',
                                         '결제 관련 보안 강화 및 PCI DSS 준수 시스템 구축',
@@ -373,7 +397,7 @@
                                     ]
                                 },
                                 {
-                                    title: '서비스 아키텍처 개선',
+                                    title: '서비스 아키텍처 개선', // 또 다른 주요 경험
                                     details: [
                                         '모놀리식 아키텍처에서 마이크로서비스로의 점진적 전환 주도',
                                         '도메인 주도 설계(DDD) 원칙 적용으로 시스템 복잡성 관리',
@@ -384,15 +408,17 @@
                         }
                     ]
                 },
+                // === 포트폴리오 섹션 설정 ===
                 portfolioSection: {
-                    title: '포트폴리오',
-                    subtitle: '주요 프로젝트를 소개합니다. 스크린샷을 클릭하면 확대해서 볼 수 있습니다.',
-                    projects: [
+                    visible: true, // true: 표시, false: 숨김
+                    title: '포트폴리오', // 섹션 제목
+                    subtitle: '주요 프로젝트를 소개합니다. 스크린샷을 클릭하면 확대해서 볼 수 있습니다.', // 부제목
+                    projects: [ // 프로젝트 목록 (배열로 여러 프로젝트 추가 가능)
                         {
-                            title: '엔터프라이즈 데이터 대시보드',
-                            company: '테크 이노베이션',
-                            overview: '기업 데이터 분석 및 시각화 도구로, 다양한 소스의 데이터를 통합하여 실시간 인사이트를 제공하는 대시보드 시스템입니다. 사용자 친화적인 인터페이스와 강력한 분석 기능을 결합했습니다.',
-                            contributions: [
+                            title: '엔터프라이즈 데이터 대시보드', // 프로젝트명
+                            company: '테크 이노베이션', // 관련 회사/단체
+                            overview: '기업 데이터 분석 및 시각화 도구로, 다양한 소스의 데이터를 통합하여 실시간 인사이트를 제공하는 대시보드 시스템입니다. 사용자 친화적인 인터페이스와 강력한 분석 기능을 결합했습니다.', // 개요
+                            contributions: [ // 기여 내용 (배열로 여러 항목 추가 가능)
                                 '데이터 시각화 컴포넌트 개발',
                                 '실시간 데이터 처리 파이프라인 구축',
                                 '사용자 맞춤형 대시보드 기능 구현',
@@ -400,50 +426,55 @@
                                 '성능 최적화 및 스케일링 아키텍처 설계',
                                 '접근성 및 반응형 디자인 적용'
                             ],
-                            technologies: ['React', 'Node.js', 'GraphQL', 'AWS', 'D3.js'],
-                            galleryTitle: '프로젝트 스크린샷',
-                            categories: [
+                            technologies: ['React', 'Node.js', 'GraphQL', 'AWS', 'D3.js'], // 사용 기술 (배열로 여러 기술 추가 가능)
+                            galleryTitle: '프로젝트 스크린샷', // 갤러리 제목
+                            categories: [ // 이미지 카테고리 (배열로 여러 카테고리 추가 가능)
                                 {
-                                    name: '대시보드 화면',
-                                    images: [
+                                    name: '대시보드 화면', // 카테고리명
+                                    images: [ // 이미지 목록
                                         { src: 'assets/portfolios/example/example.png', alt: '대시보드 메인 화면' }
+                                        // 추가 이미지는 위 형식으로 배열에 객체 추가
                                     ]
                                 }
+                                // 추가 카테고리는 위 형식으로 배열에 객체 추가
                             ]
                         }
+                        // 추가 프로젝트는 위 형식으로 배열에 객체 추가
                     ]
                 },
+                // === 기술 스택 섹션 설정 ===
                 skillsSection: {
-                    title: '기술 스택',
-                    subtitle: '전문 분야와 기술을 소개합니다.',
-                    categories: [
+                    visible: true, // true: 표시, false: 숨김
+                    title: '기술 스택', // 섹션 제목
+                    subtitle: '전문 분야와 기술을 소개합니다.', // 부제목
+                    categories: [ // 기술 카테고리 (배열로 여러 카테고리 추가 가능)
                         {
-                            name: '프로그래밍 언어',
-                            skills: [
+                            name: '프로그래밍 언어', // 카테고리명
+                            skills: [ // 기술 목록
                                 'JavaScript / TypeScript',
                                 'Python',
                                 'Java'
                             ]
                         },
                         {
-                            name: '프레임워크 & 라이브러리',
-                            skills: [
+                            name: '프레임워크 & 라이브러리', // 카테고리명
+                            skills: [ // 기술 목록
                                 'React / Vue.js',
                                 'Node.js / Express',
                                 'Spring Boot'
                             ]
                         },
                         {
-                            name: '데이터베이스',
-                            skills: [
+                            name: '데이터베이스', // 카테고리명
+                            skills: [ // 기술 목록
                                 'PostgreSQL / MySQL',
                                 'MongoDB / DynamoDB',
                                 'Redis / ElasticSearch'
                             ]
                         },
                         {
-                            name: '클라우드 & DevOps',
-                            skills: [
+                            name: '클라우드 & DevOps', // 카테고리명
+                            skills: [ // 기술 목록
                                 'AWS / GCP',
                                 'Docker / Kubernetes',
                                 'CI/CD (Jenkins, GitHub Actions)'
@@ -451,17 +482,19 @@
                         }
                     ]
                 },
+                // === 학력 및 자격증 섹션 설정 ===
                 educationSection: {
-                    title: '학력 및 자격증',
-                    categories: [
+                    visible: true, // true: 표시, false: 숨김
+                    title: '학력 및 자격증', // 섹션 제목
+                    categories: [ // 교육 카테고리 (배열로 여러 카테고리 추가 가능)
                         {
-                            name: '학력',
-                            type: 'education',
-                            items: [
+                            name: '학력', // 카테고리명
+                            type: 'education', // 카테고리 타입 (education: 학력, certificate: 자격증)
+                            items: [ // 항목 목록
                                 {
-                                    school: '한국대학교',
-                                    period: '20XX.03 - 20XX.02',
-                                    majors: [
+                                    school: '한국대학교', // 학교명
+                                    period: '20XX.03 - 20XX.02', // 기간
+                                    majors: [ // 전공 (배열로 여러 전공 추가 가능)
                                         '컴퓨터공학 전공',
                                         '데이터사이언스 복수전공'
                                     ]
@@ -498,64 +531,65 @@
                         }
                     ]
                 },
+                // === 연락처 섹션 설정 ===
                 contactSection: {
-                    title: '연락처',
-                    subtitle: '프로젝트 협업이나 채용 관련 문의를 환영합니다.',
-                    items: [
+                    visible: true, // true: 표시, false: 숨김
+                    title: '연락처', // 섹션 제목
+                    subtitle: '프로젝트 협업이나 채용 관련 문의를 환영합니다.', // 부제목
+                    items: [ // 연락처 항목 (배열로 여러 항목 추가 가능)
                         {
-                            name: '이메일',
-                            url: 'mailto:email@example.com',
-                            display: 'email@example.com',
-                            external: false
+                            name: '이메일', // 항목명
+                            url: 'mailto:email@example.com', // 링크 URL
+                            display: 'email@example.com', // 표시 텍스트
+                            external: false // 외부 링크 여부 (true: 새 탭에서 열기)
                         },
                         {
-                            name: '연락처',
-                            url: 'tel:+821012345678',
-                            display: '010-1234-5678',
-                            external: false
+                            name: '연락처', // 항목명
+                            url: 'tel:+821012345678', // 링크 URL
+                            display: '010-1234-5678', // 표시 텍스트
+                            external: false // 외부 링크 여부
                         },
                         {
-                            name: 'GitHub',
-                            url: 'https://github.com/devexample',
-                            display: 'github.com/devexample',
-                            external: true
+                            name: 'GitHub', // 항목명
+                            url: 'https://github.com/devexample', // 링크 URL
+                            display: 'github.com/devexample', // 표시 텍스트
+                            external: true // 외부 링크 여부
                         },
                         {
-                            name: '포트폴리오',
-                            url: 'https://portfolio.example.com',
-                            display: 'portfolio.example.com',
-                            external: true
+                            name: '포트폴리오', // 항목명
+                            url: 'https://portfolio.example.com', // 링크 URL
+                            display: 'portfolio.example.com', // 표시 텍스트
+                            external: true // 외부 링크 여부
                         }
                     ]
                 },
+                // === 푸터 섹션 설정 ===
                 footerSection: {
-                    copyrightYear: '2023',
-                    poweredByText: 'Template by',
-                    poweredByName: 'Resume Template',
-                    poweredByLink: 'https://github.com/resume-template'
+                    copyrightYear: '2023', // 저작권 연도
+                    poweredByText: 'Template by', // 제작자 소개 텍스트
+                    poweredByName: 'Resume Template', // 제작자/템플릿 이름
+                    poweredByLink: 'https://github.com/resume-template' // 제작자/템플릿 링크
                 }
             },
             methods: {
                 openModal(imageSrc) {
                     this.modalImage = imageSrc;
                     this.isModalVisible = true;
-                    document.body.style.overflow = 'hidden'; // 모달 열릴 때 스크롤 방지
+                    document.body.style.overflow = 'hidden';
                 },
                 closeModal() {
                     this.isModalVisible = false;
-                    document.body.style.overflow = ''; // 모달 닫힐 때 스크롤 복원
+                    document.body.style.overflow = '';
                 },
                 openImageInNewTab() {
                     window.open(this.modalImage, '_blank');
                 },
                 contactButtonEffect(event) {
-                    // 클릭 위치 기반 간단한 리플 효과
                     const btn = event.currentTarget;
                     const btnRect = btn.getBoundingClientRect();
                     const x = event.clientX - btnRect.left;
                     const y = event.clientY - btnRect.top;
                     
-                    // 버튼 내부 리플 효과 추가 (토스 스타일의 미니멀한 리플)
                     const ripple = document.createElement('div');
                     ripple.style.position = 'absolute';
                     ripple.style.width = '5px';
@@ -568,7 +602,6 @@
                     ripple.style.pointerEvents = 'none';
                     btn.appendChild(ripple);
                     
-                    // 리플 애니메이션
                     gsap.to(ripple, {
                         scale: 25,
                         opacity: 0,
@@ -579,7 +612,6 @@
                         }
                     });
                     
-                    // 버튼 피드백 (토스 스타일 - 다이내믹한 피드백)
                     gsap.timeline()
                         .to(btn, {
                             scale: 0.93, 
@@ -597,7 +629,6 @@
                             ease: 'power2.out'
                         });
                     
-                    // 버튼 아이콘 효과
                     const btnIcon = btn.querySelector('.btn-icon');
                     gsap.timeline()
                         .to(btnIcon, {
@@ -614,47 +645,38 @@
                             ease: 'power2.out'
                         });
                     
-                    // 확장 원 효과 생성 (미니멀한 버전)
                     const circle = document.createElement('div');
                     circle.className = 'expanding-circle';
                     document.body.appendChild(circle);
                     
-                    // 원의 위치를 클릭 위치로 설정
                     circle.style.top = `${event.clientY}px`;
                     circle.style.left = `${event.clientX}px`;
                     
-                    // 원이 화면을 커버하기 위해 필요한 스케일 계산
                     const maxDim = Math.max(window.innerWidth, window.innerHeight);
-                    const scale = maxDim * 3 / 60; // 미니멀한 원 크기에 맞게 조정
+                    const scale = maxDim * 3 / 60;
                     
                     const contactSection = document.getElementById('contact');
                     
-                    // 원 확장 애니메이션 (토스 스타일 - 약간 더 활기찬 전환)
                     gsap.to(circle, {
                         scale: scale,
                         opacity: 1,
                         duration: 0.35,
                         ease: 'power2.inOut',
                         onComplete: () => {
-                            // 원이 완전히 확장되면 연락처 섹션으로 이동
                             if (contactSection) {
-                                // 스크롤 애니메이션 없이 바로 이동
                                 const sectionTop = contactSection.getBoundingClientRect().top + window.scrollY - 80;
                                 window.scrollTo({
                                     top: sectionTop,
                                     behavior: 'auto'
                                 });
                                 
-                                // 카드 애니메이션 효과 준비 (토스 스타일 - 약간 더 다이내믹한 슬라이드인)
                                 const cards = contactSection.querySelectorAll('.skill-card');
                                 cards.forEach((card) => {
                                     card.style.opacity = '0';
                                     card.style.transform = 'translateY(30px)';
                                 });
                                 
-                                // 부드러운 페이드아웃
                                 setTimeout(() => {
-                                    // 원 페이드아웃
                                     gsap.to(circle, {
                                         opacity: 0,
                                         duration: 0.4,
@@ -664,7 +686,6 @@
                                         }
                                     });
                                     
-                                    // 연락처 섹션 카드 애니메이션 (토스 스타일 - 순차적인 페이드인)
                                     cards.forEach((card, index) => {
                                         gsap.to(card, {
                                             y: 0, 
@@ -680,26 +701,26 @@
                     });
                 },
                 handleScroll() {
-                    // 헤더와 최상단 이동 버튼 가시성 설정
                     const scrollY = window.scrollY;
                     const headerThreshold = 50;
                     const btnThreshold = 200;
                     
-                    // 헤더 스타일과 최상단 이동 버튼 업데이트
                     this.headerScrolled = scrollY > headerThreshold;
                     this.scrolled = scrollY > btnThreshold;
                     
-                    // 스크롤 프로그레스 바
                     const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
                     const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
                     const scrolledPercent = (scrollTop / scrollHeight) * 100;
                     document.getElementById('progressBar').style.width = scrolledPercent + '%';
                     
-                    // 현재 보이는 섹션 감지
                     this.detectVisibleSection();
                 },
                 detectVisibleSection() {
-                    const sections = ['about', 'experience', 'portfolio', 'skills', 'education', 'contact'];
+                    const sections = this.menuItems
+                        .filter(item => item.id !== 'home')
+                        .filter(item => this.shouldShowMenuItem(item.id))
+                        .map(item => item.id);
+                    
                     const offset = 150;
                     
                     if (window.scrollY < 100) {
@@ -726,7 +747,9 @@
                     }
                 },
                 startTyping() {
-                    // 타이핑 효과
+                    // 타이핑 효과 옵션이 비활성화된 경우 바로 리턴
+                    if (!this.typingOptions.enableTyping) return;
+                    
                     if (this.$refs.typing) {
                         this.isTyping = true;
                         const text = this.typingText;
@@ -759,41 +782,49 @@
                         });
                         this.activeSection = sectionId;
                     }
+                },
+                shouldShowMenuItem(id) {
+                    if (id === 'home') return true;
+                    
+                    const sectionMap = {
+                        'about': this.aboutSection,
+                        'experience': this.experienceSection,
+                        'portfolio': this.portfolioSection,
+                        'skills': this.skillsSection,
+                        'education': this.educationSection,
+                        'contact': this.contactSection
+                    };
+                    
+                    return sectionMap[id] && sectionMap[id].visible !== false;
                 }
             },
             mounted() {
                 console.log('Vue 인스턴스가 생성되었습니다.');
                 
-                // AOS 초기화 (애니메이션 효과)
                 AOS.init({
                     duration: 800,
                     easing: 'ease-in-out',
                     once: true
                 });
                 
-                // 스크롤 이벤트 리스너
                 window.addEventListener('scroll', this.handleScroll);
                 window.addEventListener('scroll', this.parallaxEffect);
                 
-                // 타이핑 효과
                 this.startTyping();
                 
-                // 모든 갤러리 이미지에 클릭 이벤트 추가
                 this.$nextTick(() => {
                     const galleryImages = document.querySelectorAll('.gallery-img');
                     galleryImages.forEach(img => {
                         img.addEventListener('click', () => {
                             this.openModal(img.src);
                         });
-                        img.style.cursor = 'pointer'; // 포인터 커서 스타일 추가
+                        img.style.cursor = 'pointer';
                     });
                     
-                    // 초기 활성 섹션 설정
                     this.handleScroll();
                 });
             },
             beforeDestroy() {
-                // 이벤트 리스너 제거
                 window.removeEventListener('scroll', this.handleScroll);
                 window.removeEventListener('scroll', this.parallaxEffect);
             }
