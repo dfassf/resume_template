@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>홍길동 - 초기 설계부터 운영까지 경험한 N년차 개발자</title>
+    <link rel="icon" href="assets/favicon.ico">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.5/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.5/ScrollToPlugin.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+</head>
+<body style="padding-top: 60px;">
+    
+    <div id="app">
+        <header :class="{ 'scrolled': headerScrolled }">
+            <div class="container">
+                <div class="header-content">
+                    <div class="logo" style="pointer-events: none;">{{ personalInfo.name }}</div>
+                    <nav class="header-nav">
+                        <ul>
+                            <li><a href="#" @click.prevent="scrollToTop" :class="{ 'active': activeSection === 'home' }">프로필</a></li>
+                            <li><a href="#about" @click.prevent="scrollToSection('about')" :class="{ 'active': activeSection === 'about' }">소개</a></li>
+                            <li><a href="#experience" @click.prevent="scrollToSection('experience')" :class="{ 'active': activeSection === 'experience' }">경력</a></li>
+                            <li><a href="#portfolio" @click.prevent="scrollToSection('portfolio')" :class="{ 'active': activeSection === 'portfolio' }">포트폴리오</a></li>
+                            <li><a href="#skills" @click.prevent="scrollToSection('skills')" :class="{ 'active': activeSection === 'skills' }">기술 스택</a></li>
+                            <li><a href="#education" @click.prevent="scrollToSection('education')" :class="{ 'active': activeSection === 'education' }">학력</a></li>
+                            <li><a href="#contact" @click.prevent="scrollToSection('contact')" :class="{ 'active': activeSection === 'contact' }">연락처</a></li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+        </header>
+        <section class="hero">
+            <div class="parallax-bg" ref="parallaxBg"></div>
+            <div class="container">
+                <div class="hero-content">
+                    <div class="hero-tag">{{ heroSection.tag }}</div>
+                    <h1>{{ heroSection.title }} <br><span class="typing" ref="typing">{{ typingText }}</span></h1>
+                    <p class="hero-description">
+                        <span v-for="(paragraph, index) in heroSection.description" :key="index">{{ paragraph }}</span>
+                    </p>
+                    <a href="#contact" class="btn" @click.prevent="contactButtonEffect">
+                        <div class="btn-text">
+                            {{ heroSection.contactButtonText }}
+                            <svg class="btn-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M8 3L14 8L8 13M14 8H2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- 소개 섹션 -->
+        <section id="about">
+            <div class="container">
+                <h2 class="section-title">{{ aboutSection.title }}</h2>
+                <p class="section-subtitle">{{ aboutSection.subtitle }}</p>
+                
+                <div class="about-content">
+                    <p v-for="(paragraph, index) in aboutSection.paragraphs" :key="index">{{ paragraph }}</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 경력 섹션 -->
+        <section id="experience">
+            <div class="container">
+                <h2 class="section-title">{{ experienceSection.title }}</h2>
+                <p class="section-subtitle">{{ experienceSection.subtitle }}</p>
+                
+                <div class="exp-list">
+                    <div class="exp-card" v-for="(company, index) in experienceSection.companies" :key="index">
+                        <div class="exp-header">
+                            <div class="exp-logo"><img :src="company.logoSrc" :alt="company.name"></div>
+                            <div>
+                                <div class="exp-company">{{ company.name }}</div>
+                                <div class="exp-duration">{{ company.duration }}</div>
+                            </div>
+                        </div>
+                        <div class="exp-position">{{ company.position }}</div>
+                        <p class="exp-description">{{ company.description }}</p>
+                        
+                        <h3>역할 및 기여</h3>
+                        <ul class="highlight-list">
+                            <li class="highlight-item" v-for="(role, roleIndex) in company.roles" :key="'role-'+roleIndex">
+                                <span>{{ role }}</span>
+                            </li>
+                        </ul>
+
+                        <h3>성과</h3>
+                        <ul class="highlight-list">
+                            <li class="highlight-item" v-for="(achievement, achievementIndex) in company.achievements" :key="'achievement-'+achievementIndex">
+                                <span>{{ achievement }}</span>
+                            </li>
+                        </ul>
+
+                        <h3>주요 경험 및 문제 해결 사례</h3>
+                        <ul class="highlight-list">
+                            <li class="highlight-item" v-for="(experience, expIndex) in company.keyExperiences" :key="'exp-'+expIndex">
+                                <strong>{{ experience.title }}</strong>
+                                <ul class="sub-list">
+                                    <li class="sub-item" v-for="(detail, detailIndex) in experience.details" :key="'detail-'+detailIndex">{{ detail }}</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 포트폴리오 섹션 -->
+        <section id="portfolio">
+            <div class="container">
+                <h2 class="section-title">{{ portfolioSection.title }}</h2>
+                <p class="section-subtitle">{{ portfolioSection.subtitle }}</p>
+                <div class="portfolio-item" 
+                     v-for="(project, index) in portfolioSection.projects" 
+                     :key="index">
+                    <div class="portfolio-header">
+                        <h3 class="portfolio-title">{{ project.title }}</h3>
+                        <span class="company-tag">{{ project.company }}</span>
+                    </div>
+                    
+                    <div class="portfolio-content">
+                        <div class="portfolio-desc">
+                            <h4>프로젝트 개요</h4>
+                            <p>{{ project.overview }}</p>
+                            
+                            <h4>주요 기여</h4>
+                            <ul class="feature-list">
+                                <li class="feature-item" v-for="(contribution, cIndex) in project.contributions" :key="'contrib-'+cIndex">
+                                    {{ contribution }}
+                                </li>
+                            </ul>
+                            <div class="tech-stack">
+                                <h4>사용 기술</h4>
+                                <div class="tech-tags">
+                                    <span class="tech-tag" v-for="(tech, tIndex) in project.technologies" :key="'tech-'+tIndex">
+                                        {{ tech }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="portfolio-gallery">
+                        <h4>{{ project.galleryTitle }}</h4>
+                        <template v-if="project.categories && project.categories.length > 0">
+                            <div class="category-section" v-for="(category, catIndex) in project.categories" :key="'cat-'+catIndex">
+                                <div class="category-label">{{ category.name }}</div>
+                                <div class="gallery-grid" :class="{ 'single': category.images.length === 1 }">
+                                    <div class="gallery-item" v-for="(image, imgIndex) in category.images" :key="'img-'+imgIndex">
+                                        <img :src="image.src" :alt="image.alt" class="gallery-img" @click="openModal(image.src)">
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                        <template v-else>
+                            <div class="gallery-grid" :class="{ 'single': project.images.length === 1 }">
+                                <div class="gallery-item" v-for="(image, imgIndex) in project.images" :key="'img-'+imgIndex">
+                                    <img :src="image.src" :alt="image.alt" class="gallery-img" @click="openModal(image.src)">
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 기술 스택 섹션 -->
+        <section id="skills">
+            <div class="container">
+                <h2 class="section-title">{{ skillsSection.title }}</h2>
+                <p class="section-subtitle">{{ skillsSection.subtitle }}</p>
+                
+                <div class="skill-grid">
+                    <div class="skill-card" 
+                         v-for="(category, index) in skillsSection.categories" 
+                         :key="index">
+                        <div class="skill-name">{{ category.name }}</div>
+                        <ul class="skill-list">
+                            <li class="skill-item" v-for="(skill, skillIndex) in category.skills" :key="skillIndex">
+                                <span class="skill-dot"></span>{{ skill }}
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 학력 및 자격증 섹션 -->
+        <section id="education">
+            <div class="container">
+                <h2 class="section-title">{{ educationSection.title }}</h2>           
+                <div class="skill-grid">
+                    <div class="skill-card" 
+                         v-for="(category, index) in educationSection.categories" 
+                         :key="index">
+                        <div class="skill-name">{{ category.name }}</div>
+                        <div class="edu-item" v-if="category.type === 'education'" v-for="(edu, eduIndex) in category.items" :key="'edu-'+eduIndex">
+                            <div class="edu-school">{{ edu.school }}</div>
+                            <div class="edu-period">{{ edu.period }}</div>
+                            <div class="edu-major" v-for="(major, majorIndex) in edu.majors" :key="'major-'+majorIndex">{{ major }}</div>
+                            <p class="edu-description" v-if="edu.description">{{ edu.description }}</p>
+                        </div>
+                        <div class="cert-item" v-if="category.type === 'certificate'" v-for="(cert, certIndex) in category.items" :key="'cert-'+certIndex">
+                            <div class="cert-name">{{ cert.name }}</div>
+                            <div class="cert-date">{{ cert.date }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 연락처 섹션 -->
+        <section id="contact">
+            <div class="container">
+                <h2 class="section-title">{{ contactSection.title }}</h2>
+                <p class="section-subtitle">{{ contactSection.subtitle }}</p>
+                <div class="skill-grid">
+                    <div class="skill-card" 
+                         v-for="(item, index) in contactSection.items" 
+                         :key="index">
+                        <div class="skill-name">{{ item.name }}</div>
+                        <p><a :href="item.url" :target="item.external ? '_blank' : null" class="contact-link">{{ item.display }}</a></p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 이미지 모달 -->
+        <div class="image-modal" v-if="isModalVisible" @click="closeModal">
+            <div class="modal-content" @click.stop>
+                <img :src="modalImage" alt="확대된 이미지" class="modal-image" @click="openImageInNewTab">
+                <button class="modal-close" @click="closeModal">&times;</button>
+            </div>
+        </div>
+        
+        <!-- 최상단 이동 버튼 -->
+        <div class="scroll-top-btn" :class="{ 'visible': scrolled }" @click="scrollToTop">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5" stroke-opacity="0.3"/>
+                <path d="M8 14L12 10L16 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </div>
+        
+        <!-- 푸터 -->
+        <footer class="footer">
+            <div class="container">
+                <div class="footer-content">
+                    <div class="footer-logo" @click="scrollToTop">
+                        <span>{{ personalInfo.name }} 포트폴리오</span>
+                    </div>
+                    
+                    <div class="footer-links">
+                        <div class="footer-social">
+                            <a :href="contactSection.items[2].url" target="_blank" class="social-icon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 2C6.477 2 2 6.477 2 12C2 16.418 4.865 20.166 8.839 21.489C9.339 21.581 9.5 21.278 9.5 21.012C9.5 20.777 9.492 20.014 9.489 19.181C6.727 19.792 6.139 17.949 6.139 17.949C5.684 16.811 5.019 16.509 5.019 16.509C4.097 15.895 5.086 15.908 5.086 15.908C6.108 15.976 6.636 16.92 6.636 16.92C7.545 18.421 9.007 18.007 9.516 17.751C9.609 17.116 9.876 16.703 10.171 16.419C7.958 16.13 5.631 15.278 5.631 11.469C5.631 10.337 6.013 9.406 6.656 8.669C6.54 8.416 6.2 7.443 6.756 6.088C6.756 6.088 7.617 5.818 9.456 7.061C10.268 6.844 11.131 6.735 11.994 6.731C12.857 6.735 13.72 6.844 14.532 7.061C16.371 5.818 17.232 6.088 17.232 6.088C17.788 7.443 17.448 8.416 17.332 8.669C17.975 9.406 18.357 10.337 18.357 11.469C18.357 15.289 16.026 16.126 13.806 16.409C14.171 16.763 14.5 17.466 14.5 18.531C14.5 20.046 14.488 20.677 14.488 21.008C14.488 21.27 14.639 21.577 15.159 21.475C19.158 20.168 22 16.416 22 12C22 6.477 17.523 2 12 2Z" fill="currentColor"/>
+                                </svg>
+                            </a>
+                            <a :href="contactSection.items[0].url" class="social-icon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M20 4H4C2.9 4 2.01 4.9 2.01 6L2 18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6C22 4.9 21.1 4 20 4ZM20 8L12 13L4 8V6L12 11L20 6V8Z" fill="currentColor"/>
+                                </svg>
+                            </a>
+                            <a :href="contactSection.items[3].url" target="_blank" class="social-icon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M4.5 7.5C4.5 6.67157 5.17157 6 6 6H7.5C8.32843 6 9 6.67157 9 7.5V9C9 9.82843 8.32843 10.5 7.5 10.5H6C5.17157 10.5 4.5 9.82843 4.5 9V7.5Z" fill="currentColor"/>
+                                    <path d="M12 4.5H19.5C20.3284 4.5 21 5.17157 21 6V7.5C21 8.32843 20.3284 9 19.5 9H12V4.5Z" fill="currentColor"/>
+                                    <path d="M12 10.5H19.5C20.3284 10.5 21 11.1716 21 12V13.5C21 14.3284 20.3284 15 19.5 15H12V10.5Z" fill="currentColor"/>
+                                    <path d="M12 16.5H19.5C20.3284 16.5 21 17.1716 21 18V19.5C21 20.3284 20.3284 21 19.5 21H12V16.5Z" fill="currentColor"/>
+                                    <path d="M4.5 13.5C4.5 12.6716 5.17157 12 6 12H7.5C8.32843 12 9 12.6716 9 13.5V15C9 15.8284 8.32843 16.5 7.5 16.5H6C5.17157 16.5 4.5 15.8284 4.5 15V13.5Z" fill="currentColor"/>
+                                    <path d="M4.5 19.5C4.5 18.6716 5.17157 18 6 18H7.5C8.32843 18 9 18.6716 9 19.5V21C9 21.8284 8.32843 22.5 7.5 22.5H6C5.17157 22.5 4.5 21.8284 4.5 21V19.5Z" fill="currentColor"/>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="footer-bottom">
+                        <p class="copyright">© {{ footerSection.copyrightYear }} {{ personalInfo.name }}. All rights reserved.</p>
+                        <p class="powered-by">{{ footerSection.poweredByText }} <a :href="footerSection.poweredByLink" target="_blank">{{ footerSection.poweredByName }}</a></p>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Vue 인스턴스 생성
+        const app = new Vue({
+            el: '#app',
+            data: {
+                isModalVisible: false,
+                modalImage: '',
+                scrolled: false,
+                headerScrolled: false,
+                typingText: 'N년차 개발자',
+                typingIndex: 0,
+                isTyping: false,
+                activeSection: 'home',
+                personalInfo: {
+                    name: '이름샘플',
+                    position: 'IT 전문가'
+                },
+                heroSection: {
+                    tag: '소프트웨어 엔지니어',
+                    title: '사용자 경험에 가치를 더하는',
+                    description: [
+                        '소프트웨어 개발자로서 효율적인 코드 작성과 최적화된 사용자 경험 제공에 집중합니다.',
+                        '대규모 트래픽 처리 및 안정적인 서비스 운영 경험이 있으며, 시스템 아키텍처 설계부터 배포까지 전체 개발 주기를 이해하고 있습니다.',
+                        '다양한 팀과의 협업을 통해 복잡한 비즈니스 요구사항을 이해하고 기술적 솔루션을 제공하는 데 능숙합니다.',
+                        '지속적인 학습과 최신 기술 트렌드 파악으로 혁신적인 제품 개발에 기여하고 있습니다.'
+                    ],
+                    contactButtonText: '연락하기'
+                },
+                aboutSection: {
+                    title: '소개',
+                    subtitle: '저의 경력과 전문 분야를 소개합니다.',
+                    paragraphs: [
+                        '다양한 산업 분야의 소프트웨어 개발 경험을 보유한 IT 전문가입니다. 프론트엔드부터 백엔드, 클라우드 인프라에 이르기까지 종합적인 기술 스택을 활용합니다.',
+                        '사용자 중심의 설계 철학을 바탕으로 직관적이고 효율적인 솔루션을 구현합니다. 코드 품질과 시스템 성능 최적화에 대한 깊은 이해를 갖추고 있습니다.',
+                        '기술적 도전과제를 해결하고 팀 역량을 강화하는 데 기여해왔으며, 지속적인 개선과 혁신을 추구합니다.'
+                    ]
+                },
+                experienceSection: {
+                    title: '경력',
+                    subtitle: '다양한 환경에서의 프로젝트 경험을 소개합니다.',
+                    companies: [
+                        {
+                            name: '테크 이노베이션',
+                            logoSrc: 'assets/company_logos/github.png',
+                            duration: '20XX.01 - 20XX.12 (2년)',
+                            position: '시니어 소프트웨어 엔지니어',
+                            description: '혁신적인 디지털 서비스 플랫폼을 개발하는 기업으로, 월간 활성 사용자 수십만 명을 보유한 서비스의 핵심 기능 개발 및 유지보수를 담당했습니다.',
+                            roles: [
+                                '핵심 비즈니스 로직 설계 및 구현',
+                                'RESTful API 개발 및 최적화',
+                                '마이크로서비스 아키텍처 설계 참여',
+                                '시스템 성능 모니터링 및 개선',
+                                '주니어 개발자 멘토링 및 코드 리뷰'
+                            ],
+                            achievements: [
+                                '서비스 응답 시간 40% 개선으로 사용자 경험 향상',
+                                '자동화 테스트 도입으로 배포 안정성 향상 및 버그 발생률 60% 감소',
+                                '코드 리팩토링을 통한 유지보수성 향상 및 개발 속도 30% 증가',
+                                '신규 기능 출시로 사용자 참여도 25% 증가',
+                                '클라우드 인프라 최적화로 운영 비용 20% 절감'
+                            ],
+                            keyExperiences: [
+                                {
+                                    title: '고성능 검색 시스템 구현',
+                                    details: [
+                                        '대용량 데이터 처리를 위한 검색 엔진 도입 및 커스터마이징',
+                                        '복잡한 필터링 및 정렬 기능 구현으로 사용자 경험 개선',
+                                        '캐싱 전략 도입으로 검색 속도 5배 향상'
+                                    ]
+                                },
+                                {
+                                    title: '결제 시스템 고도화',
+                                    details: [
+                                        '다양한 결제 수단 통합 및 안정적인 결제 프로세스 구현',
+                                        '결제 관련 보안 강화 및 PCI DSS 준수 시스템 구축',
+                                        '결제 실패율 감소 및 매출 전환율 15% 향상'
+                                    ]
+                                },
+                                {
+                                    title: '서비스 아키텍처 개선',
+                                    details: [
+                                        '모놀리식 아키텍처에서 마이크로서비스로의 점진적 전환 주도',
+                                        '도메인 주도 설계(DDD) 원칙 적용으로 시스템 복잡성 관리',
+                                        '컨테이너 기반 배포 환경 구축으로 개발-운영 통합 효율화'
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                portfolioSection: {
+                    title: '포트폴리오',
+                    subtitle: '주요 프로젝트를 소개합니다. 스크린샷을 클릭하면 확대해서 볼 수 있습니다.',
+                    projects: [
+                        {
+                            title: '엔터프라이즈 데이터 대시보드',
+                            company: '테크 이노베이션',
+                            overview: '기업 데이터 분석 및 시각화 도구로, 다양한 소스의 데이터를 통합하여 실시간 인사이트를 제공하는 대시보드 시스템입니다. 사용자 친화적인 인터페이스와 강력한 분석 기능을 결합했습니다.',
+                            contributions: [
+                                '데이터 시각화 컴포넌트 개발',
+                                '실시간 데이터 처리 파이프라인 구축',
+                                '사용자 맞춤형 대시보드 기능 구현',
+                                '다양한 데이터 소스 통합 인터페이스 개발',
+                                '성능 최적화 및 스케일링 아키텍처 설계',
+                                '접근성 및 반응형 디자인 적용'
+                            ],
+                            technologies: ['React', 'Node.js', 'GraphQL', 'AWS', 'D3.js'],
+                            galleryTitle: '프로젝트 스크린샷',
+                            categories: [
+                                {
+                                    name: '대시보드 화면',
+                                    images: [
+                                        { src: 'assets/portfolios/example/example.png', alt: '대시보드 메인 화면' }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                skillsSection: {
+                    title: '기술 스택',
+                    subtitle: '전문 분야와 기술을 소개합니다.',
+                    categories: [
+                        {
+                            name: '프로그래밍 언어',
+                            skills: [
+                                'JavaScript / TypeScript',
+                                'Python',
+                                'Java'
+                            ]
+                        },
+                        {
+                            name: '프레임워크 & 라이브러리',
+                            skills: [
+                                'React / Vue.js',
+                                'Node.js / Express',
+                                'Spring Boot'
+                            ]
+                        },
+                        {
+                            name: '데이터베이스',
+                            skills: [
+                                'PostgreSQL / MySQL',
+                                'MongoDB / DynamoDB',
+                                'Redis / ElasticSearch'
+                            ]
+                        },
+                        {
+                            name: '클라우드 & DevOps',
+                            skills: [
+                                'AWS / GCP',
+                                'Docker / Kubernetes',
+                                'CI/CD (Jenkins, GitHub Actions)'
+                            ]
+                        }
+                    ]
+                },
+                educationSection: {
+                    title: '학력 및 자격증',
+                    categories: [
+                        {
+                            name: '학력',
+                            type: 'education',
+                            items: [
+                                {
+                                    school: '한국대학교',
+                                    period: '20XX.03 - 20XX.02',
+                                    majors: [
+                                        '컴퓨터공학 전공',
+                                        '데이터사이언스 복수전공'
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            name: '전문 교육',
+                            type: 'education',
+                            items: [
+                                {
+                                    school: '글로벌 테크 아카데미',
+                                    period: '20XX.06',
+                                    majors: [
+                                        '클라우드 아키텍처 마스터 과정'
+                                    ],
+                                    description: '대규모 분산 시스템 설계 및 클라우드 최적화 학습'
+                                }
+                            ]
+                        },
+                        {
+                            name: '자격증',
+                            type: 'certificate',
+                            items: [
+                                {
+                                    name: 'AWS 솔루션스 아키텍트 프로페셔널',
+                                    date: '20XX.08'
+                                },
+                                {
+                                    name: '정보처리기사',
+                                    date: '20XX.03'
+                                }
+                            ]
+                        }
+                    ]
+                },
+                contactSection: {
+                    title: '연락처',
+                    subtitle: '프로젝트 협업이나 채용 관련 문의를 환영합니다.',
+                    items: [
+                        {
+                            name: '이메일',
+                            url: 'mailto:email@example.com',
+                            display: 'email@example.com',
+                            external: false
+                        },
+                        {
+                            name: '연락처',
+                            url: 'tel:+821012345678',
+                            display: '010-1234-5678',
+                            external: false
+                        },
+                        {
+                            name: 'GitHub',
+                            url: 'https://github.com/devexample',
+                            display: 'github.com/devexample',
+                            external: true
+                        },
+                        {
+                            name: '포트폴리오',
+                            url: 'https://portfolio.example.com',
+                            display: 'portfolio.example.com',
+                            external: true
+                        }
+                    ]
+                },
+                footerSection: {
+                    copyrightYear: '2023',
+                    poweredByText: 'Template by',
+                    poweredByName: 'Resume Template',
+                    poweredByLink: 'https://github.com/resume-template'
+                }
+            },
+            methods: {
+                openModal(imageSrc) {
+                    this.modalImage = imageSrc;
+                    this.isModalVisible = true;
+                    document.body.style.overflow = 'hidden'; // 모달 열릴 때 스크롤 방지
+                },
+                closeModal() {
+                    this.isModalVisible = false;
+                    document.body.style.overflow = ''; // 모달 닫힐 때 스크롤 복원
+                },
+                openImageInNewTab() {
+                    window.open(this.modalImage, '_blank');
+                },
+                contactButtonEffect(event) {
+                    // 클릭 위치 기반 간단한 리플 효과
+                    const btn = event.currentTarget;
+                    const btnRect = btn.getBoundingClientRect();
+                    const x = event.clientX - btnRect.left;
+                    const y = event.clientY - btnRect.top;
+                    
+                    // 버튼 내부 리플 효과 추가 (토스 스타일의 미니멀한 리플)
+                    const ripple = document.createElement('div');
+                    ripple.style.position = 'absolute';
+                    ripple.style.width = '5px';
+                    ripple.style.height = '5px';
+                    ripple.style.background = 'rgba(255, 255, 255, 0.7)';
+                    ripple.style.borderRadius = '50%';
+                    ripple.style.transformOrigin = 'center';
+                    ripple.style.left = `${x}px`;
+                    ripple.style.top = `${y}px`;
+                    ripple.style.pointerEvents = 'none';
+                    btn.appendChild(ripple);
+                    
+                    // 리플 애니메이션
+                    gsap.to(ripple, {
+                        scale: 25,
+                        opacity: 0,
+                        duration: 0.6,
+                        ease: 'power1.out',
+                        onComplete: () => {
+                            ripple.remove();
+                        }
+                    });
+                    
+                    // 버튼 피드백 (토스 스타일 - 다이내믹한 피드백)
+                    gsap.timeline()
+                        .to(btn, {
+                            scale: 0.93, 
+                            duration: 0.1, 
+                            ease: 'power1.out',
+                        })
+                        .to(btn, {
+                            scale: 1.03, 
+                            duration: 0.2, 
+                            ease: 'back.out(2)'
+                        })
+                        .to(btn, {
+                            scale: 1, 
+                            duration: 0.15, 
+                            ease: 'power2.out'
+                        });
+                    
+                    // 버튼 아이콘 효과
+                    const btnIcon = btn.querySelector('.btn-icon');
+                    gsap.timeline()
+                        .to(btnIcon, {
+                            x: 5,
+                            duration: 0.1
+                        })
+                        .to(btnIcon, {
+                            x: -2,
+                            duration: 0.1
+                        })
+                        .to(btnIcon, {
+                            x: 0,
+                            duration: 0.2,
+                            ease: 'power2.out'
+                        });
+                    
+                    // 확장 원 효과 생성 (미니멀한 버전)
+                    const circle = document.createElement('div');
+                    circle.className = 'expanding-circle';
+                    document.body.appendChild(circle);
+                    
+                    // 원의 위치를 클릭 위치로 설정
+                    circle.style.top = `${event.clientY}px`;
+                    circle.style.left = `${event.clientX}px`;
+                    
+                    // 원이 화면을 커버하기 위해 필요한 스케일 계산
+                    const maxDim = Math.max(window.innerWidth, window.innerHeight);
+                    const scale = maxDim * 3 / 60; // 미니멀한 원 크기에 맞게 조정
+                    
+                    const contactSection = document.getElementById('contact');
+                    
+                    // 원 확장 애니메이션 (토스 스타일 - 약간 더 활기찬 전환)
+                    gsap.to(circle, {
+                        scale: scale,
+                        opacity: 1,
+                        duration: 0.35,
+                        ease: 'power2.inOut',
+                        onComplete: () => {
+                            // 원이 완전히 확장되면 연락처 섹션으로 이동
+                            if (contactSection) {
+                                // 스크롤 애니메이션 없이 바로 이동
+                                const sectionTop = contactSection.getBoundingClientRect().top + window.scrollY - 80;
+                                window.scrollTo({
+                                    top: sectionTop,
+                                    behavior: 'auto'
+                                });
+                                
+                                // 카드 애니메이션 효과 준비 (토스 스타일 - 약간 더 다이내믹한 슬라이드인)
+                                const cards = contactSection.querySelectorAll('.skill-card');
+                                cards.forEach((card) => {
+                                    card.style.opacity = '0';
+                                    card.style.transform = 'translateY(30px)';
+                                });
+                                
+                                // 부드러운 페이드아웃
+                                setTimeout(() => {
+                                    // 원 페이드아웃
+                                    gsap.to(circle, {
+                                        opacity: 0,
+                                        duration: 0.4,
+                                        ease: 'power2.out',
+                                        onComplete: () => {
+                                            circle.remove();
+                                        }
+                                    });
+                                    
+                                    // 연락처 섹션 카드 애니메이션 (토스 스타일 - 순차적인 페이드인)
+                                    cards.forEach((card, index) => {
+                                        gsap.to(card, {
+                                            y: 0, 
+                                            opacity: 1, 
+                                            duration: 0.35,
+                                            ease: 'back.out(1.5)',
+                                            delay: 0.07 * index
+                                        });
+                                    });
+                                }, 100);
+                            }
+                        }
+                    });
+                },
+                handleScroll() {
+                    // 헤더와 최상단 이동 버튼 가시성 설정
+                    const scrollY = window.scrollY;
+                    const headerThreshold = 50;
+                    const btnThreshold = 200;
+                    
+                    // 헤더 스타일과 최상단 이동 버튼 업데이트
+                    this.headerScrolled = scrollY > headerThreshold;
+                    this.scrolled = scrollY > btnThreshold;
+                    
+                    // 스크롤 프로그레스 바
+                    const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+                    const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+                    const scrolledPercent = (scrollTop / scrollHeight) * 100;
+                    document.getElementById('progressBar').style.width = scrolledPercent + '%';
+                    
+                    // 현재 보이는 섹션 감지
+                    this.detectVisibleSection();
+                },
+                detectVisibleSection() {
+                    const sections = ['about', 'experience', 'portfolio', 'skills', 'education', 'contact'];
+                    const offset = 150;
+                    
+                    if (window.scrollY < 100) {
+                        this.activeSection = 'home';
+                        return;
+                    }
+                    
+                    for (let i = sections.length - 1; i >= 0; i--) {
+                        const section = document.getElementById(sections[i]);
+                        if (section) {
+                            const sectionTop = section.getBoundingClientRect().top + window.scrollY;
+                            if (window.scrollY >= sectionTop - offset) {
+                                this.activeSection = sections[i];
+                                break;
+                            }
+                        }
+                    }
+                },
+                parallaxEffect() {
+                    if (this.$refs.parallaxBg) {
+                        const scrollPos = window.scrollY;
+                        const translateY = scrollPos * 0.3;
+                        this.$refs.parallaxBg.style.transform = `translateY(${translateY}px)`;
+                    }
+                },
+                startTyping() {
+                    // 타이핑 효과
+                    if (this.$refs.typing) {
+                        this.isTyping = true;
+                        const text = this.typingText;
+                        this.$refs.typing.textContent = '';
+                        
+                        const typeText = () => {
+                            if (this.typingIndex < text.length) {
+                                this.$refs.typing.textContent += text.charAt(this.typingIndex);
+                                this.typingIndex++;
+                                setTimeout(typeText, 100);
+                            } else {
+                                this.isTyping = false;
+                            }
+                        };
+                        
+                        setTimeout(typeText, 500);
+                    }
+                },
+                scrollToTop() {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    this.activeSection = 'home';
+                },
+                scrollToSection(sectionId, offset = 80) {
+                    const section = document.getElementById(sectionId);
+                    if (section) {
+                        const sectionTop = section.getBoundingClientRect().top + window.scrollY - offset;
+                        window.scrollTo({
+                            top: sectionTop,
+                            behavior: 'smooth'
+                        });
+                        this.activeSection = sectionId;
+                    }
+                }
+            },
+            mounted() {
+                console.log('Vue 인스턴스가 생성되었습니다.');
+                
+                // AOS 초기화 (애니메이션 효과)
+                AOS.init({
+                    duration: 800,
+                    easing: 'ease-in-out',
+                    once: true
+                });
+                
+                // 스크롤 이벤트 리스너
+                window.addEventListener('scroll', this.handleScroll);
+                window.addEventListener('scroll', this.parallaxEffect);
+                
+                // 타이핑 효과
+                this.startTyping();
+                
+                // 모든 갤러리 이미지에 클릭 이벤트 추가
+                this.$nextTick(() => {
+                    const galleryImages = document.querySelectorAll('.gallery-img');
+                    galleryImages.forEach(img => {
+                        img.addEventListener('click', () => {
+                            this.openModal(img.src);
+                        });
+                        img.style.cursor = 'pointer'; // 포인터 커서 스타일 추가
+                    });
+                    
+                    // 초기 활성 섹션 설정
+                    this.handleScroll();
+                });
+            },
+            beforeDestroy() {
+                // 이벤트 리스너 제거
+                window.removeEventListener('scroll', this.handleScroll);
+                window.removeEventListener('scroll', this.parallaxEffect);
+            }
+        });
+    </script>
+</body>
+</html>
